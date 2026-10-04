@@ -68,4 +68,7 @@ npm run build
 - 字段、状态、动作与流转目标集中在 `frontend/src/data/modules.ts`；示例数据在
   `frontend/src/data/seed.ts`。
 - 状态流转只允许在 `local-service.ts` 里改，页面组件不做业务判断。
-- 想回到初始数据：清掉浏览器里 `hydrology-monitor-station:entries` 这一项，或调用 `resetModule(模块)`。
+- 想回到初始数据：清掉浏览器里 `hydrology-monitor-station:entries:v2` 这一项，或调用 `resetModule(模块)`。
+- 泥沙监测的数据质量判定集中在 `frontend/src/data/sediment-quality.ts`：`0` 是合法实测值不算缺测，
+  缺测与异常标记只在读取时派生、不落库；列表、记录详情、设备跨模块入口共用同一结论。
+  草稿幂等、管理员补录、批量审核事务（乐观版本号 + 失败整批回退）见 `frontend/src/api/sediment-service.ts`。

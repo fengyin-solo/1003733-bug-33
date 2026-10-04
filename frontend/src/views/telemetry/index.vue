@@ -46,6 +46,9 @@
           <td v-for="column in columns" :key="column">{{ row[column] ?? '—' }}</td>
           <td>{{ row.status }}</td>
           <td class="row-actions">
+            <RouterLink class="link" :to="`/sediment/device?device=${encodeURIComponent(String(row['设备编号']))}`">
+              泥沙数据
+            </RouterLink>
             <button
               v-for="action in actions"
               :key="action"

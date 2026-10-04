@@ -14,6 +14,8 @@ const Groundwater = () => import('@/views/groundwater/index.vue')
 const Evaporation = () => import('@/views/evaporation/index.vue')
 const Cableway = () => import('@/views/cableway/index.vue')
 const Sediment = () => import('@/views/sediment/index.vue')
+const SedimentDetail = () => import('@/views/sediment/detail.vue')
+const SedimentDevice = () => import('@/views/sediment/device.vue')
 const Communication = () => import('@/views/communication/index.vue')
 const Stationhouse = () => import('@/views/stationhouse/index.vue')
 const Calibration = () => import('@/views/calibration/index.vue')
@@ -37,6 +39,8 @@ const router = createRouter({
     { path: '/evaporation', name: 'evaporation', component: Evaporation },
     { path: '/cableway', name: 'cableway', component: Cableway },
     { path: '/sediment', name: 'sediment', component: Sediment },
+    { path: '/sediment/:id(\\d+)', name: 'sediment-detail', component: SedimentDetail },
+    { path: '/sediment/device', name: 'sediment-device', component: SedimentDevice },
     { path: '/communication', name: 'communication', component: Communication },
     { path: '/stationhouse', name: 'stationhouse', component: Stationhouse },
     { path: '/calibration', name: 'calibration', component: Calibration },

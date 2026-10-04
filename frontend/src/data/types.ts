@@ -3,9 +3,11 @@
 export type EntryRow = {
   id: number
   status: string
-  pending: boolean
-  abnormal: boolean
-  [field: string]: string | number | boolean
+  /** 通用模块的派生位；泥沙等自带状态机的模块不写这两位，读取时按状态派生。 */
+  pending?: boolean
+  abnormal?: boolean
+  // 业务字段为通用存储；泥沙等模块会携带处理记录数组等结构化字段。
+  [field: string]: unknown
 }
 
 export type ModuleMeta = {

@@ -35,3 +35,28 @@ body { margin: 0; background: #f6f8fb; color: #1f2937; }
 .error-text { color: #b42318; }
 .status-legend { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 10px; font-size: 12px; color: var(--muted); }
 .legend-item { background: #eef2f7; border-radius: 999px; padding: 2px 10px; }
+
+/* 泥沙模块：质量徽标、批量操作条、草稿表单、处理痕迹时间线 */
+.badge { display: inline-block; border-radius: 999px; padding: 2px 10px; font-size: 12px; white-space: nowrap; }
+.badge-ok { background: #e7f6ec; color: #1a7f37; }
+.badge-missing { background: #fdf3e3; color: #b25e09; }
+.badge-bad { background: #fde8e8; color: #b42318; }
+.badge-reviewed { background: #e8f0fe; color: #1f4fb0; }
+.badge-muted { background: #eef2f7; color: var(--muted); }
+.batch-bar { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; font-size: 13px; }
+.batch-bar .spacer { flex: 1; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin-bottom: 12px; }
+.form-grid label span { display: block; font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+.form-grid input, .form-grid textarea, .form-grid select { width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font: inherit; }
+.form-grid .full { grid-column: 1 / -1; }
+.form-actions { display: flex; gap: 8px; margin-bottom: 12px; }
+.detail-layout { display: grid; grid-template-columns: 1fr 320px; gap: 16px; align-items: start; }
+.timeline { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; }
+.timeline h3 { margin: 4px 0 8px; font-size: 14px; }
+.timeline-item { border-left: 2px solid var(--border); padding: 0 0 10px 10px; font-size: 12px; }
+.timeline-item b { display: block; }
+.timeline-item .muted { color: var(--muted); }
+.role-switch { margin-left: 10px; }
+.role-switch select { font: inherit; padding: 1px 4px; }
+.quality-cell { display: flex; flex-direction: column; gap: 2px; }
+.quality-issues { font-size: 11px; color: var(--muted); }

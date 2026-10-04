@@ -1,5 +1,7 @@
 import { MODULE_BY_KEY } from '@/data/modules'
 import { allRows, listRows, resetRows, saveRows } from '@/data/local-store'
+import { toViewRow } from '@/data/sediment-quality'
+import type { SedimentRow } from '@/data/sediment-types'
 import type { ActionResult, EntryRow, ModuleMeta, OverviewResult, PageResult } from '@/data/types'
 
 // 会写进数据的「往回走」动作：命中就把这条记录标成异常态，看板上能一眼看出来。
@@ -88,6 +90,16 @@ export function loadOverview(): OverviewResult {
   const rows = allRows()
   const modules = [...MODULE_BY_KEY.values()].map((meta) => {
     const entries = rows[meta.key] ?? []
+    if (meta.key === 'sediment') {
+      // 泥沙模块的待处理/异常量都从同一判定源与状态机派生，不看历史落库的 pending/abnormal 位。
+      const views = entries.map((entry) => toViewRow(entry as unknown as SedimentRow))
+      return {
+        name: meta.name,
+        created: entries.length,
+        pending: views.filter((view) => view.status === '草稿' || view.status === '待审核').length,
+        abnormal: views.filter((view) => view.quality === '异常').length,
+      }
+    }
     return {
       name: meta.name,
       created: entries.length,
