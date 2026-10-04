@@ -37,6 +37,7 @@
       <thead>
         <tr>
           <th v-for="column in columns" :key="column">{{ column }}</th>
+          <th>本站最近含沙量（泥沙模块）</th>
           <th>当前状态</th>
           <th>可执行动作</th>
         </tr>
@@ -44,6 +45,22 @@
       <tbody>
         <tr v-for="row in rows" :key="String(row.id)">
           <td v-for="column in columns" :key="column">{{ row[column] ?? '—' }}</td>
+          <td>
+            <template v-if="sedimentSnapshot(row)">
+              <span :class="{ 'cell-zero': sedimentSnapshot(row)?.zero }">
+                {{ sedimentSnapshot(row)?.text }}
+              </span>
+              <span
+                v-for="tag in sedimentSnapshot(row)?.tags ?? []"
+                :key="tag.code"
+                class="chip"
+                :class="tag.severity === 'blocking' ? 'danger' : 'info'"
+              >
+                {{ tag.label }}
+              </span>
+            </template>
+            <span v-else class="muted">本站暂无泥沙记录</span>
+          </td>
           <td>{{ row.status }}</td>
           <td class="row-actions">
             <button
@@ -58,7 +75,7 @@
           </td>
         </tr>
         <tr v-if="!rows.length">
-          <td :colspan="columns.length + 2" class="empty-state">暂无遥测设备数据，可先登记遥测设备</td>
+          <td :colspan="columns.length + 3" class="empty-state">暂无遥测设备数据，可先登记遥测设备</td>
         </tr>
       </tbody>
     </table>
@@ -79,6 +96,16 @@ import {
   moduleMeta,
   runAction as applyAction,
 } from '@/api/local-service'
+import { listRows } from '@/data/local-store'
+import {
+  evaluateSediment,
+  formatCell,
+  isMissing,
+  parseNumber,
+  SEDIMENT_FIELDS,
+  SEDIMENT_KEY,
+  type SedimentTag,
+} from '@/data/sediment-rules'
 import type { EntryRow } from '@/data/types'
 
 const meta = moduleMeta('telemetry')
@@ -92,6 +119,32 @@ const total = ref(0)
 const errorMessage = ref('')
 const filters = ref<Record<string, string>>({})
 const filterFields = columns.slice(0, 3)
+
+// 跨模块取数：设备入口按「所属站点」关联泥沙模块最近一条记录。
+// 关键：复用与泥沙列表、记录详情完全相同的 evaluateSediment，零值与缺测口径一致，
+// 标签也是纯派生、按行缓存，不会因跨模块再渲染一遍而重复出现。
+type Snapshot = { text: string; zero: boolean; tags: SedimentTag[] }
+const snapshots = new Map<number, Snapshot>()
+
+function latestSedimentByStation(station: string): EntryRow | undefined {
+  const sameStation = listRows(SEDIMENT_KEY).filter(
+    (row) => String(row[SEDIMENT_FIELDS.station] ?? '') === station,
+  )
+  if (sameStation.length === 0) {
+    return undefined
+  }
+  return sameStation.reduce((latest, row) =>
+    String(row[SEDIMENT_FIELDS.sampledAt] ?? '') >
+    String(latest[SEDIMENT_FIELDS.sampledAt] ?? '')
+      ? row
+      : latest,
+  )
+}
+
+function sedimentSnapshot(row: EntryRow): Snapshot | undefined {
+  return snapshots.get(Number(row.id))
+}
+
 const statusSummary = computed(() =>
   statuses.map((status: string) => ({
     status,
@@ -128,6 +181,24 @@ function reload() {
     const payload = listEntries(meta.key, filters.value)
     rows.value = payload.items
     total.value = payload.total
+    snapshots.clear()
+    for (const row of payload.items) {
+      const station = String(row['所属站点'] ?? '')
+      const sediment = latestSedimentByStation(station)
+      if (!sediment) {
+        continue
+      }
+      const value = sediment[SEDIMENT_FIELDS.concentration]
+      const evaluation = evaluateSediment(sediment)
+      snapshots.set(Number(row.id), {
+        // 含沙量为 0 在此同样显示「0 kg/m³」，缺测才显示「缺测」。
+        text: isMissing(value)
+          ? '含沙量缺测'
+          : `${formatCell(value, ' kg/m³')} · ${String(sediment[SEDIMENT_FIELDS.sampledAt] ?? '')}`,
+        zero: !isMissing(value) && parseNumber(value) === 0,
+        tags: evaluation.tags,
+      })
+    }
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : '遥测设备列表读取失败'
   }
@@ -135,3 +206,32 @@ function reload() {
 
 onMounted(reload)
 </script>
+
+<style scoped>
+.cell-zero {
+  font-variant-numeric: tabular-nums;
+  color: #1f2937;
+}
+.muted {
+  color: var(--muted);
+  font-size: 12px;
+}
+.chip {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-size: 12px;
+  margin-left: 4px;
+  border: 1px solid transparent;
+}
+.chip.danger {
+  background: #fef3f2;
+  color: #b42318;
+  border-color: #fecdca;
+}
+.chip.info {
+  background: #fffaeb;
+  color: #b54708;
+  border-color: #fedf89;
+}
+</style>
